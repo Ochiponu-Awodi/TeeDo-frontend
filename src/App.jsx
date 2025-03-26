@@ -12,9 +12,7 @@ function App() {
 
   // Axios instance with token
   const api = axios.create({
-    baseURL: process.env.NODE_ENV === 'production'
-      ? 'https://teedo-backend.onrender.com'
-      : 'http://localhost:5000',
+    baseURL:  import.meta.env.VITE_API_URL || 'http://localhost:5000',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
