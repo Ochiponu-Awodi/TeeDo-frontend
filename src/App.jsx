@@ -22,9 +22,11 @@ function App() {
 
   const fetchTodos = useCallback(async () => {
     setIsLoading(true);
+    setMessage('');
     try {
       const response = await api.get('/todos');
       setTodos(response.data);
+      setMessage('');
     } catch (error) {
       console.error('Error fetching todos:', error);
       setMessage('Failed to fetch todos');
@@ -52,6 +54,8 @@ function App() {
   };
 
   const login = async () => {
+    setIsLoading(true);
+    setMessage('');
     try {
       const response = await axios.post(`${baseURL}/login`, { username, password });
       const newToken = response.data.access_token;
@@ -63,6 +67,8 @@ function App() {
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Login failed';
       setMessage(errorMsg === 'Invalid username or password' ? 'Wrong credentials' : errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -152,8 +158,8 @@ function App() {
               </li>
             ))}
           </ul>
-          {token && isLoading && <p>Loading...</p>}
-          {message && !isLoading && <p>{message}</p>}
+          {isLoading && <p>Loading...</p>}
+          {message && <p>{message}</p>}
         </div>
       )}
     </div>
