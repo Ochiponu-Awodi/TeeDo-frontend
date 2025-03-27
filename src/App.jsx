@@ -10,9 +10,12 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [message, setMessage] = useState('');
 
-  // Axios instance with token
+  // Dynamic baseurl for all requests
+  const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+  // Axios instance for authenticated requests
   const api = axios.create({
-    baseURL:  import.meta.env.VITE_API_URL || 'http://localhost:5000',
+    baseURL,
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
 
@@ -24,7 +27,7 @@ function App() {
       console.error('Error fetching todos:', error);
       setMessage('Failed to fetch todos');
     }
-  }, [api, setTodos, setMessage]);
+  }, [api]);
 
   useEffect(() => {
     if (token) {
@@ -34,7 +37,7 @@ function App() {
 
   const register = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/register', { username, password });
+      const response = await axios.post(`${baseURL}/register`, { username, password });
       setMessage(response.data.message);
       setUsername('');
       setPassword('');
@@ -45,11 +48,11 @@ function App() {
 
   const login = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/login', { username, password });
+      const response = await axios.post(`${baseURL}/login`, { username, password });
       const newToken = response.data.access_token;
       setToken(newToken);
       localStorage.setItem('token', newToken);
-      setMessage('Login successfully');
+      setMessage('Logged in successfully');
       setUsername('');
       setPassword('');
     } catch (error) {
