@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import axios from 'axios'
 import './App.css'
 
@@ -15,10 +15,12 @@ function App() {
   const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
   // Axios instance for authenticated requests
-  const api = axios.create({
-    baseURL,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  const api = useMemo(() => {
+    return axios.create({
+      baseURL,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  }, [token, baseURL]);
 
   const fetchTodos = useCallback(async () => {
     setIsLoading(true);
@@ -43,13 +45,12 @@ function App() {
   }, [api]);
 
   useEffect(() => {
-    if (token) {
+    if (token && !isLoading) {
       fetchTodos();
     }
-  }, [token, fetchTodos]);
+  }, [token, fetchTodos, isLoading]);
 
   const register = async () => {
-    setIsLoading(true);
     setMessage('');
     try {
       const response = await axios.post(`${baseURL}/register`, { username, password });
@@ -59,13 +60,10 @@ function App() {
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Registration failed';
       setMessage(errorMsg === 'Username already exists' ? 'Username taken' : errorMsg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const login = async () => {
-    setIsLoading(true);
     setMessage('');
     try {
       const response = await axios.post(`${baseURL}/login`, { username, password });
@@ -78,8 +76,6 @@ function App() {
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Login failed';
       setMessage(errorMsg === 'Invalid username or password' ? 'Wrong credentials' : errorMsg);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -156,7 +152,6 @@ function App() {
           />
           <button onClick={register}>Register</button>
           <button onClick={login}>Login</button>
-          {isLoading && <p>Loading...</p>}
           {message && <p>{message}</p>}
         </div>
       ) : (
