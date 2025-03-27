@@ -9,6 +9,7 @@ function App() {
   const [password, setPassword] = useState('');
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [message, setMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Dynamic baseurl for all requests
   const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -20,12 +21,15 @@ function App() {
   });
 
   const fetchTodos = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await api.get('/todos');
       setTodos(response.data);
     } catch (error) {
       console.error('Error fetching todos:', error);
       setMessage('Failed to fetch todos');
+    } finally {
+      setIsLoading(false);
     }
   }, [api]);
 
@@ -148,7 +152,8 @@ function App() {
               </li>
             ))}
           </ul>
-          {message && <p>{message}</p>}
+          {token && isLoading && <p>Loading...</p>}
+          {message && !isLoading && <p>{message}</p>}
         </div>
       )}
     </div>
