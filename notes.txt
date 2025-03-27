@@ -1,0 +1,2 @@
+The VITE_API_URL is initialized on vercel to the backend API on Render but to localhost in the workspace,
+Remember that if you wanna change deployment option.
