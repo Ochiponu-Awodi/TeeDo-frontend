@@ -23,6 +23,7 @@ function App() {
   }, [token, baseURL]);
 
   const fetchTodos = useCallback(async () => {
+    console.log('fetchTodos called, token:', token, 'isLoading:', isLoading);
     setIsLoading(true);
     setMessage('');
     try {
@@ -45,10 +46,11 @@ function App() {
   }, [api]);
 
   useEffect(() => {
-    if (token && !isLoading) {
+    if (token) {
+      console.log('useEffect triggered, token:', token);
       fetchTodos();
     }
-  }, [token, fetchTodos, isLoading]);
+  }, [token, fetchTodos]);
 
   const register = async () => {
     setMessage('');
