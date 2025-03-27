@@ -64,7 +64,6 @@ function App() {
   };
 
   const login = async () => {
-    setMessage('');
     try {
       const response = await axios.post(`${baseURL}/login`, { username, password });
       const newToken = response.data.access_token;
