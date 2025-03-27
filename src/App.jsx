@@ -29,7 +29,14 @@ function App() {
       setMessage('');
     } catch (error) {
       console.error('Error fetching todos:', error);
-      setMessage('Failed to fetch todos');
+      if (error.response?.status === 401) {
+        setToken('');
+        localStorage.removeItem('token');
+        setTodos([]);
+        setMessage('Session expired. Please log in again.');
+      } else {
+        setMessage('Failed to fetch todos');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -42,6 +49,8 @@ function App() {
   }, [token, fetchTodos]);
 
   const register = async () => {
+    setIsLoading(true);
+    setMessage('');
     try {
       const response = await axios.post(`${baseURL}/register`, { username, password });
       setMessage(response.data.message);
@@ -50,6 +59,8 @@ function App() {
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Registration failed';
       setMessage(errorMsg === 'Username already exists' ? 'Username taken' : errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -81,33 +92,48 @@ function App() {
 
   const addTodo = async () => {
     if (!newTask) return;
+    setIsLoading(true);
+    setMessage('');
     try {
       const response = await api.post('/todos', { task: newTask});
       setTodos([...todos, response.data]);
       setNewTask('');
+      setMessage('');
     } catch (error) {
       console.error('Error adding todo:', error);
       setMessage('Failed to add todo');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const toggleTodo = async (id, completed) => {
+    setIsLoading(true);
+    setMessage('');
     try {
       const response = await api.put(`/todos/${id}`, { completed: !completed });
       setTodos(todos.map(todo => (todo.id === id ? response.data : todo)));
+      setMessage('');
     } catch (error) {
       console.error('Error updating todo:', error);
       setMessage('Failed to update todo');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const deleteTodo = async (id) => {
+    setIsLoading(true);
+    setMessage('');
     try {
       await api.delete(`/todos/${id}`);
       setTodos(todos.filter(todo => todo.id !== id));
+      setMessage('');
     } catch (error) {
       console.error('Error deleting todo:', error);
       setMessage('Failed to delete todo');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -130,6 +156,7 @@ function App() {
           />
           <button onClick={register}>Register</button>
           <button onClick={login}>Login</button>
+          {isLoading && <p>Loading...</p>}
           {message && <p>{message}</p>}
         </div>
       ) : (
