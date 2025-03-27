@@ -23,7 +23,6 @@ function App() {
   }, [token, baseURL]);
 
   const fetchTodos = useCallback(async () => {
-    console.log('fetchTodos called, token:', token, 'isLoading:', isLoading);
     setIsLoading(true);
     setMessage('');
     try {
@@ -47,7 +46,6 @@ function App() {
 
   useEffect(() => {
     if (token) {
-      console.log('useEffect triggered, token:', token);
       fetchTodos();
     }
   }, [token, fetchTodos]);
