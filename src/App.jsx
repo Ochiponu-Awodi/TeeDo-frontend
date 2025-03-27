@@ -42,7 +42,8 @@ function App() {
       setUsername('');
       setPassword('');
     } catch (error) {
-      setMessage(error.response?.data?.error || 'Registration failed');
+      const errorMsg = error.response?.data?.error || 'Registration failed';
+      setMessage(errorMsg === 'Username already exists' ? 'Username taken' : errorMsg);
     }
   };
 
@@ -56,7 +57,8 @@ function App() {
       setUsername('');
       setPassword('');
     } catch (error) {
-      setMessage(error.response?.data?.error || 'Login failed');
+      const errorMsg = error.response?.data?.error || 'Login failed';
+      setMessage(errorMsg === 'Invalid username or password' ? 'Wrong credentials' : errorMsg);
     }
   };
 
