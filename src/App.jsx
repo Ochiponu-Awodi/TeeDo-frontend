@@ -59,6 +59,10 @@ function App() {
     socket.on('new_todo', (todo) => {
       if (token) { // Only update if logged in
         setTodos((prevTodos) => {
+          // Skip if todo already exists by checking the ID
+          if (prevTodos.some(t => t.id === todo.id)) {
+            return prevTodos; // No change
+          }
           const updatedTodos = [...prevTodos, todo];
           localStorage.setItem('todos', JSON.stringify(updatedTodos));
           return updatedTodos;
@@ -136,9 +140,11 @@ function App() {
     setMessage('');
     try {
       const response = await api.post('/todos', { task: newTask});
-      const updatedTodos = [...todos, response.data];
-      setTodos(updatedTodos);
-      localStorage.setItem('todos', JSON.stringify(updatedTodos));
+      setTodos((prevTodos) => {
+        const updatedTodos = [...prevTodos, response.data];
+        localStorage.setItem('todos', JSON.stringify(updatedTodos));
+        return updatedTodos;
+      });
       setNewTask('');
       setMessage('Todo added successfully');
       setTimeout(() => setMessage(''), 2000);
@@ -149,7 +155,7 @@ function App() {
       setIsLoading(false);
     }
   }, 300),
-  [api, todos, newTask]
+  [api, newTask]
 );
 
   const toggleTodo = async (id, completed) => {
@@ -157,9 +163,11 @@ function App() {
     setMessage('');
     try {
       const response = await api.put(`/todos/${id}`, { completed: !completed });
-      const updatedTodos = todos.map(todo => (todo.id === id ? response.data : todo));
-      setTodos(updatedTodos);
-      localStorage.setItem('todos', JSON.stringify(updatedTodos));
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.map(todo => (todo.id === id ? response.data : todo));
+        localStorage.setItem('todos', JSON.stringify(updatedTodos));
+        return updatedTodos;
+      });
       setMessage('Todo updated successfully');
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
@@ -175,9 +183,11 @@ function App() {
     setMessage('');
     try {
       await api.delete(`/todos/${id}`);
-      const updatedTodos = todos.filter(todo => todo.id !== id);
-      setTodos(updatedTodos);
-      localStorage.setItem('todos', JSON.stringify(updatedTodos));
+      setTodos((prevTodos) => {
+        const updatedTodos = prevTodos.filter(todo => todo.id !== id);
+        localStorage.setItem('todos', JSON.stringify(updatedTodos));
+        return updatedTodos;
+      });
       setMessage('Todo deleted successfully');
       setTimeout(() => setMessage(''), 2000);
     } catch (error) {
