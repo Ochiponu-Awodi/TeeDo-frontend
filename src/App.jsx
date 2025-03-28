@@ -67,6 +67,28 @@ function App() {
         setTimeout(() => setMessage(''), 2000);
       }
     });
+    socket.on('updated_todo', (todo) => {
+      if (token) {
+        setTodos((prevTodos) => {
+          const updatedTodos = prevTodos.map(t => (t.id === todo.id ? todo : t));
+          localStorage.setItem('todos', JSON.stringify(updatedTodos));
+          return updatedTodos;
+        });
+        setMessage('Todo updated in real-time');
+        setTimeout(() => setMessage(''), 2000);
+      }
+    });
+    socket.on('deleted_todo', ({ id }) => {
+      if (token) {
+        setTodos((prevTodos) => {
+          const updatedTodos = prevTodos.filter(t => t.id !== id);
+          localStorage.setItem('todos', JSON.stringify(updatedTodos));
+          return updatedTodos;
+        });
+        setMessage('Todo deleted in real-time');
+        setTimeout(() => setMessage(''), 2000);
+      }
+    });
     return () => socket.disconnect(); // Cleanup on unmount
   }, [token, baseURL])
 
