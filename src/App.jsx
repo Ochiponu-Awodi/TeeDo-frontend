@@ -25,6 +25,7 @@ function App() {
   }, [token, baseURL]);
 
   const fetchTodos = useCallback(async () => {
+    if (!token) return;
     setIsLoading(true);
     setMessage('');
     try {
@@ -44,31 +45,32 @@ function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [api]);
+  }, [api, token]);
 
   // Initial fetch on login
   useEffect(() => {
     if (token) {
-      setTimeout(() => fetchTodos(), 1000);
+      fetchTodos();
+    } else {
+      setTodos([]);
+      localStorage.removeItem('todos');
     }
   }, [token, fetchTodos]);
 
   // WebSocket for real-time updates
   useEffect(() => {
-    const socket = io(baseURL);
+    const socket = io(baseURL, { transports: ['websocket', 'polling'] });
+    socket.on('connect', () => console.log('WebSocket connected'));
     socket.on('new_todo', (todo) => {
       if (token) { // Only update if logged in
         setTodos((prevTodos) => {
-          // Skip if todo already exists by checking the ID
-          if (prevTodos.some(t => t.id === todo.id)) {
-            return prevTodos; // No change
-          }
+          if (prevTodos.some(t => t.id === todo.id)) return prevTodos;
           const updatedTodos = [...prevTodos, todo];
           localStorage.setItem('todos', JSON.stringify(updatedTodos));
+          setMessage('New todo added in real-time');
+          setTimeout(() => setMessage(''), 2000);
           return updatedTodos;
         });
-        setMessage('New todo added in real-time');
-        setTimeout(() => setMessage(''), 2000);
       }
     });
     socket.on('updated_todo', (todo) => {
@@ -76,10 +78,10 @@ function App() {
         setTodos((prevTodos) => {
           const updatedTodos = prevTodos.map(t => (t.id === todo.id ? todo : t));
           localStorage.setItem('todos', JSON.stringify(updatedTodos));
+          setMessage('Todo updated in real-time');
+          setTimeout(() => setMessage(''), 2000);
           return updatedTodos;
         });
-        setMessage('Todo updated in real-time');
-        setTimeout(() => setMessage(''), 2000);
       }
     });
     socket.on('deleted_todo', ({ id }) => {
@@ -87,10 +89,10 @@ function App() {
         setTodos((prevTodos) => {
           const updatedTodos = prevTodos.filter(t => t.id !== id);
           localStorage.setItem('todos', JSON.stringify(updatedTodos));
+          setMessage('Todo deleted in real-time');
+          setTimeout(() => setMessage(''), 2000);
           return updatedTodos;
         });
-        setMessage('Todo deleted in real-time');
-        setTimeout(() => setMessage(''), 2000);
       }
     });
     return () => socket.disconnect(); // Cleanup on unmount
@@ -133,30 +135,32 @@ function App() {
     setTimeout(() => setMessage(''), 2000);
   };
 
-  const addTodo = useCallback(
-    debounce(async () => {
-    if (!newTask) return;
-    setIsLoading(true);
-    setMessage('');
-    try {
-      const response = await api.post('/todos', { task: newTask});
-      setTodos((prevTodos) => {
-        const updatedTodos = [...prevTodos, response.data];
-        localStorage.setItem('todos', JSON.stringify(updatedTodos));
-        return updatedTodos;
-      });
-      setNewTask('');
-      setMessage('Todo added successfully');
-      setTimeout(() => setMessage(''), 2000);
-    } catch (error) {
-      console.error('Error adding todo:', error);
-      setMessage('Failed to add todo');
-    } finally {
-      setIsLoading(false);
-    }
-  }, 300),
-  [api, newTask]
-);
+  const addTodo = useCallback(() => {
+    const debouncedAdd = debounce(async () => {
+      if (!newTask) return;
+      setIsLoading(true);
+      setMessage('');
+      try {
+        const response = await api.post('/todos', { task: newTask});
+        setTodos((prevTodos) => {
+          // Only add if not already present
+          if (prevTodos.some(t => t.id === response.data.id)) return prevTodos;
+          const updatedTodos = [...prevTodos, response.data];
+          localStorage.setItem('todos', JSON.stringify(updatedTodos));
+          return updatedTodos;
+        });
+        setNewTask('');
+        setMessage('Todo added successfully');
+        setTimeout(() => setMessage(''), 2000);
+      } catch (error) {
+        console.error('Error adding todo:', error);
+        setMessage('Failed to add todo');
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+    debouncedAdd();
+  }, [api, newTask]);
 
   const toggleTodo = async (id, completed) => {
     setIsLoading(true);
