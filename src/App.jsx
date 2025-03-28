@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import axios from 'axios'
+import { debounce } from 'lodash'
+import { io } from 'socket.io-client'
 import './App.css'
 
 function App() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(() => JSON.parse(localStorage.getItem('todos')) || []);
   const [newTask, setNewTask] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +30,7 @@ function App() {
     try {
       const response = await api.get('/todos');
       setTodos(response.data);
-      setMessage('');
+      localStorage.setItem('todos', JSON.stringify(response.data));
     } catch (error) {
       console.error('Error fetching todos:', error);
       if (error.response?.status === 401) {
@@ -44,11 +46,29 @@ function App() {
     }
   }, [api]);
 
+  // Initial fetch on login
   useEffect(() => {
     if (token) {
       setTimeout(() => fetchTodos(), 1000);
     }
   }, [token, fetchTodos]);
+
+  // WebSocket for real-time updates
+  useEffect(() => {
+    const socket = io(baseURL);
+    socket.on('new_todo', (todo) => {
+      if (token) { // Only update if logged in
+        setTodos((prevTodos) => {
+          const updatedTodos = [...prevTodos, todo];
+          localStorage.setItem('todos', JSON.stringify(updatedTodos));
+          return updatedTodos;
+        });
+        setMessage('New todo added in real-time');
+        setTimeout(() => setMessage(''), 2000);
+      }
+    });
+    return () => socket.disconnect(); // Cleanup on unmount
+  }, [token, baseURL])
 
   const register = async () => {
     setMessage('');
@@ -87,30 +107,39 @@ function App() {
     setTimeout(() => setMessage(''), 2000);
   };
 
-  const addTodo = async () => {
+  const addTodo = useCallback(
+    debounce(async () => {
     if (!newTask) return;
     setIsLoading(true);
     setMessage('');
     try {
       const response = await api.post('/todos', { task: newTask});
-      setTodos([...todos, response.data]);
+      const updatedTodos = [...todos, response.data];
+      setTodos(updatedTodos);
+      localStorage.setItem('todos', JSON.stringify(updatedTodos));
       setNewTask('');
-      setMessage('');
+      setMessage('Todo added successfully');
+      setTimeout(() => setMessage(''), 2000);
     } catch (error) {
       console.error('Error adding todo:', error);
       setMessage('Failed to add todo');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, 300),
+  [api, todos, newTask]
+);
 
   const toggleTodo = async (id, completed) => {
     setIsLoading(true);
     setMessage('');
     try {
       const response = await api.put(`/todos/${id}`, { completed: !completed });
-      setTodos(todos.map(todo => (todo.id === id ? response.data : todo)));
-      setMessage('');
+      const updatedTodos = todos.map(todo => (todo.id === id ? response.data : todo));
+      setTodos(updatedTodos);
+      localStorage.setItem('todos', JSON.stringify(updatedTodos));
+      setMessage('Todo updated successfully');
+      setTimeout(() => setMessage(''), 2000);
     } catch (error) {
       console.error('Error updating todo:', error);
       setMessage('Failed to update todo');
@@ -124,8 +153,11 @@ function App() {
     setMessage('');
     try {
       await api.delete(`/todos/${id}`);
-      setTodos(todos.filter(todo => todo.id !== id));
-      setMessage('');
+      const updatedTodos = todos.filter(todo => todo.id !== id);
+      setTodos(updatedTodos);
+      localStorage.setItem('todos', JSON.stringify(updatedTodos));
+      setMessage('Todo deleted successfully');
+      setTimeout(() => setMessage(''), 2000);
     } catch (error) {
       console.error('Error deleting todo:', error);
       setMessage('Failed to delete todo');
@@ -181,7 +213,7 @@ function App() {
               </li>
             ))}
           </ul>
-          {isLoading && <p>Loading...</p>}
+          {isLoading && <p className='loading'>Loading...</p>}
           {message && <p>{message}</p>}
         </div>
       )}

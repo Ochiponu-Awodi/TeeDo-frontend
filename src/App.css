@@ -90,3 +90,14 @@ p {
     background-color: #f0f0f0;
   }
 }
+
+.loading {
+  opacity: 0;
+  animation: fadeInOut 0.5s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
