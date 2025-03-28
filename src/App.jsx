@@ -46,7 +46,7 @@ function App() {
 
   useEffect(() => {
     if (token) {
-      fetchTodos();
+      setTimeout(() => fetchTodos(), 1000);
     }
   }, [token, fetchTodos]);
 
@@ -64,6 +64,7 @@ function App() {
   };
 
   const login = async () => {
+    setMessage('');
     try {
       const response = await axios.post(`${baseURL}/login`, { username, password });
       const newToken = response.data.access_token;
@@ -83,6 +84,7 @@ function App() {
     localStorage.removeItem('token');
     setTodos([]);
     setMessage('Logged out');
+    setTimeout(() => setMessage(''), 2000);
   };
 
   const addTodo = async () => {
