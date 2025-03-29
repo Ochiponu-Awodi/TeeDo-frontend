@@ -1,114 +1,166 @@
 /* src/input.css */
 @import "tailwindcss";
 
-/* Mobile-first base styles */
+body {
+  @apply min-w-[320px] min-h-screen;
+}
+
+/* Dark mode */
+.dark body {
+  @apply bg-gray-900 text-white;
+}
+  
+  /* Light mode */
+:root:not(.dark) body {
+  @apply bg-gray-100;
+}
+
 .App {
-  @apply max-w-full mx-auto p-4 text-center; /* Full-width, centered */
+  @apply max-w-full mx-auto p-4 text-center;
 }
 
 h1 {
-  @apply text-2xl mb-5; /* Smaller for mobile */
+  @apply text-2xl mb-5;
 }
 
 input {
-  @apply w-full p-2 m-2 rounded border border-gray-300 font-sans; /* Full-width, touch-friendly */
+  @apply w-full p-2 m-2 rounded border border-gray-300 font-sans text-white;
 }
 
 button {
-  @apply w-full p-3 m-1 rounded border-none bg-gray-800 text-white font-medium cursor-pointer transition-colors; /* Bigger tap target */
+  @apply w-full p-3 m-1 rounded border-none bg-gray-800 text-white font-medium cursor-pointer transition-colors;
 }
 
 button:hover {
-  @apply bg-gray-700 border border-[#646cff]; /* Your purple hover */
+  @apply bg-gray-700 border border-[#646cff];
 }
 
 button:focus,
 button:focus-visible {
-  @apply outline-none ring-4 ring-blue-500; /* Focus ring */
+  @apply outline-none ring-4 ring-blue-500;
 }
 
 ul {
-  @apply list-none p-0 max-h-[60vh] overflow-y-auto; /* Scrollable list */
+  @apply list-none p-0 max-h-[60vh] overflow-y-auto;
 }
 
 li {
-  @apply flex items-center justify-between p-3 m-2 bg-gray-700 rounded transition-colors; /* Mobile-friendly */
+  @apply flex items-center justify-between p-3 m-2 bg-gray-700 rounded transition-colors /*animate-fadeIn*/;
   animation: fadeIn 0.5s ease-in;
 }
 
 li:hover {
-  @apply bg-gray-600; /* Hover effect */
+  @apply bg-gray-600;
 }
 
 li input[type="checkbox"] {
-  @apply mr-2 h-5 w-5; /* Bigger checkbox */
+  @apply mr-2 h-5 w-5;
 }
 
 li span {
-  @apply flex-1; /* Grow to fill space */
+  @apply flex-1 text-white;
+}
+
+li button {
+  @apply w-auto px-2 py-1 m-1 text-sm bg-red-600 rounded; /* Smaller delete */
+}
+
+li button:hover {
+  @apply bg-red-500;
 }
 
 p {
-  @apply text-[#ff5555] m-2; /* Error/message */
+  @apply text-[#ff5555] m-2;
 }
 
 .loading {
-  @apply opacity-0;
+  @apply opacity-0 /*animate-fadeInOut*/;
   animation: fadeInOut 1s ease-in-out;
 }
 
-/* Light theme */
-@media (prefers-color-scheme: light) {
-  .App {
-    @apply bg-gray-100;
-  }
-  button {
-    @apply bg-gray-200 text-gray-800;
-  }
-  button:hover {
-    @apply bg-gray-300;
-  }
-  li {
-    @apply bg-white;
-  }
-  li:hover {
-    @apply bg-gray-50;
-  }
+/* Dark mode */
+.dark .App {
+  @apply bg-gray-900 text-white;
+}
+.dark button {
+  @apply bg-gray-800 text-white;
+}
+.dark button:hover {
+  @apply bg-gray-700;
+}
+.dark li {
+  @apply bg-gray-700;
+}
+.dark li:hover {
+  @apply bg-gray-600;
+}
+.dark input {
+  @apply text-white bg-gray-800;
+}
+
+/* Light mode */
+:root:not(.dark) .App {
+  @apply bg-gray-100;
+}
+:root:not(.dark) button {
+  @apply bg-gray-200 text-gray-800;
+}
+:root:not(.dark) button:hover {
+  @apply bg-gray-300;
+}
+:root:not(.dark) li {
+  @apply bg-white;
+}
+:root:not(.dark) li:hover {
+  @apply bg-gray-50;
+}
+:root:not(.dark) li span {
+  @apply text-gray-800; /* Dark text for light mode */
+}
+:root:not(.dark) input {
+  @apply text-gray-800 bg-white; /* Dark text, light input bg */
 }
 
 /* Tablet and up */
 @media (min-width: 768px) {
   .App {
-    @apply max-w-2xl p-6; /* Wider container */
+    @apply max-w-2xl p-6;
   }
   h1 {
-    @apply text-3xl; /* Bigger title */
+    @apply text-3xl;
   }
   input {
-    @apply mx-2; /* Restore your original spacing */
+    @apply mx-2;
   }
   button {
-    @apply w-auto px-4 py-2; /* Compact buttons */
+    @apply w-auto px-4 py-2;
   }
   li {
-    @apply m-3; /* More spacing */
+    @apply m-3;
+  }
+  button.absolute {
+    @apply px-2 py-1 text-sm;
   }
 }
 
 /* Desktop */
 @media (min-width: 1024px) {
   h1 {
-    @apply text-4xl; /* Your original 2.5em-ish */
+    @apply text-4xl;
   }
 }
 
-@keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+/* Theme toggle */
+button.absolute.right-10 {
+  @apply p-2 text-xl;
 }
 
-@keyframes fadeInOut {
-  0% { opacity: 0; }
-  50% { opacity: 1; }
-  100% { opacity: 0; }
-}
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes fadeInOut {
+    0% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+  }

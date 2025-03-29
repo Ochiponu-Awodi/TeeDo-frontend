@@ -3,6 +3,7 @@ import axios from 'axios'
 import { debounce } from 'lodash'
 import { io } from 'socket.io-client'
 import { useSwipeable } from 'react-swipeable';
+import { FaSun, FaMoon } from 'react-icons/fa';
 import './input.css'
 
 function App() {
@@ -14,17 +15,20 @@ function App() {
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [swipingId, setSwipingId] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') !== 'light');
 
   // Dynamic baseurl for all requests
   const baseURL = import.meta.env.VITE_API_URL || 'https://teedo-backend.onrender.com';
 
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(prev => !prev);
+
   // Axios instance for authenticated requests
-  const api = useMemo(() => {
-    return axios.create({
-      baseURL,
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    });
-  }, [token, baseURL]);
+  const api = useMemo(() => axios.create({ baseURL, headers: token ? { Authorization: `Bearer ${token}` } : {} }), [token, baseURL]);
 
   const fetchTodos = useCallback(async () => {
     if (!token) return;
@@ -232,24 +236,17 @@ function App() {
           {message && <p>{message}</p>}
         </div>
       ) : (
-        <div>
+        <div className='relative'>
           <h1 className="text-2xl md:text-3xl lg:text-4xl">TeeDo List</h1>
-          <button onClick={logout}>Logout</button>
+          <button className="absolute top-0 left-10" onClick={toggleTheme}> {isDarkMode ? <FaSun /> : <FaMoon />} </button>
+          <button className="absolute top-0 right-0" onClick={logout}>Logout</button>
           <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Add a new task" />
 
           <button onClick={addTodo}>Add Todo</button>
           <ul {...swipeHandlers}>
             {todos.map(todo => (
-              <li 
-                key={todo.id}
-                data-id={todo.id}
-                className={swipingId === todo.id ? 'transform -translate-x-full transition-transform duration-300' : ''}
-              >
-                <input
-                  type="checkbox"
-                  checked={todo.completed}
-                  onChange={() => toggleTodo(todo.id, todo.completed)}
-                />
+              <li key={todo.id} data-id={todo.id} className={swipingId === todo.id ? 'transform -translate-x-full transition-transform duration-300' : ''}>
+                <input type="checkbox" checked={todo.completed} onChange={() => toggleTodo(todo.id, todo.completed)}/>
                 <span className={todo.completed ? 'line-through' : ''}> {todo.task} </span>
                 <button onClick={() => deleteTodo(todo.id)}>Delete</button>
               </li>
