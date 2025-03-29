@@ -32,7 +32,8 @@ ul {
 }
 
 li {
-  @apply flex items-center justify-between p-3 m-2 bg-gray-700 rounded transition-colors /*animate-fadeIn; /* Mobile-friendly */
+  @apply flex items-center justify-between p-3 m-2 bg-gray-700 rounded transition-colors; /* Mobile-friendly */
+  animation: fadeIn 0.5s ease-in;
 }
 
 li:hover {
@@ -52,7 +53,8 @@ p {
 }
 
 .loading {
-  @apply opacity-0; /* animate-fadeInOut; /* Your animation */
+  @apply opacity-0;
+  animation: fadeInOut 1s ease-in-out;
 }
 
 /* Light theme */
@@ -100,14 +102,13 @@ p {
   }
 }
 
-/* Animation */
-/* @keyframes fadeInOut {
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeInOut {
   0% { opacity: 0; }
   50% { opacity: 1; }
   100% { opacity: 0; }
-} */
-
-/* @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-} */
+}
