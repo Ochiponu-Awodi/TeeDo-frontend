@@ -28,7 +28,7 @@ input {
 }
 
 button {
-  @apply w-full p-3 m-1 rounded border-none bg-gray-800 text-white font-medium cursor-pointer transition-colors;
+  @apply w-auto px-3 py-2 m-1 rounded border-none bg-gray-800 text-white font-medium cursor-pointer transition-colors;
 }
 
 button:hover {
@@ -133,7 +133,7 @@ p {
     @apply mx-2;
   }
   button {
-    @apply w-auto px-4 py-2;
+    @apply px-4 py-2;
   }
   li {
     @apply m-3;
