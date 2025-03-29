@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import axios from 'axios'
 import { debounce } from 'lodash'
 import { io } from 'socket.io-client'
-import './App.css'
+import { useSwipeable } from 'react-swipeable';
+import './input.css'
 
 function App() {
   const [todos, setTodos] = useState(() => JSON.parse(localStorage.getItem('todos')) || []);
@@ -12,9 +13,10 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [swipingId, setSwipingId] = useState(null);
 
   // Dynamic baseurl for all requests
-  const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const baseURL = import.meta.env.VITE_API_URL || 'https://teedo-backend.onrender.com';
 
   // Axios instance for authenticated requests
   const api = useMemo(() => {
@@ -199,52 +201,56 @@ function App() {
       setMessage('Failed to delete todo');
     } finally {
       setIsLoading(false);
+      setSwipingId(null);
     }
   };
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: (eventData) => {
+      const id = Number(eventData.event.target.closest('li')?.dataset.id);
+      if (id) deleteTodo(id);
+    },
+    onSwipeStart: (eventData) => {
+      const id = Number(eventData.event.target.closest('li')?.dataset.id);
+      if (id) setSwipingId(id);
+    },
+    onSwiped: () => setSwipingId(null),
+    trackMouse: true,
+    delta: 50,
+  });
 
   return (
     <div className="App">
       {!token ? (
         <div>
-          <h1>Todo App</h1>
-          <input 
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-          />
+          <h1 className='text-2xl md:text-3xl lg:text-4xl'>TeeDo</h1>
+          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
+
           <button onClick={register}>Register</button>
           <button onClick={login}>Login</button>
           {message && <p>{message}</p>}
         </div>
       ) : (
         <div>
-          <h1>Todo List</h1>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl">TeeDo List</h1>
           <button onClick={logout}>Logout</button>
-          <input
-            type="text"
-            value={newTask}
-            onChange={(e) => setNewTask(e.target.value)}
-            placeholder="Add a new task"
-          />
+          <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Add a new task" />
+
           <button onClick={addTodo}>Add Todo</button>
-          <ul>
+          <ul {...swipeHandlers}>
             {todos.map(todo => (
-              <li key={todo.id}>
+              <li 
+                key={todo.id}
+                data-id={todo.id}
+                className={swipingId === todo.id ? 'transform -translate-x-full transition-transform duration-300' : ''}
+              >
                 <input
                   type="checkbox"
                   checked={todo.completed}
                   onChange={() => toggleTodo(todo.id, todo.completed)}
                 />
-                <span style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}>
-                  {todo.task}
-                </span>
+                <span className={todo.completed ? 'line-through' : ''}> {todo.task} </span>
                 <button onClick={() => deleteTodo(todo.id)}>Delete</button>
               </li>
             ))}

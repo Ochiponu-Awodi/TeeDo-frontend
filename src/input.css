@@ -1,0 +1,113 @@
+/* src/input.css */
+@import "tailwindcss";
+
+/* Mobile-first base styles */
+.App {
+  @apply max-w-full mx-auto p-4 text-center; /* Full-width, centered */
+}
+
+h1 {
+  @apply text-2xl mb-5; /* Smaller for mobile */
+}
+
+input {
+  @apply w-full p-2 m-2 rounded border border-gray-300 font-sans; /* Full-width, touch-friendly */
+}
+
+button {
+  @apply w-full p-3 m-1 rounded border-none bg-gray-800 text-white font-medium cursor-pointer transition-colors; /* Bigger tap target */
+}
+
+button:hover {
+  @apply bg-gray-700 border border-[#646cff]; /* Your purple hover */
+}
+
+button:focus,
+button:focus-visible {
+  @apply outline-none ring-4 ring-blue-500; /* Focus ring */
+}
+
+ul {
+  @apply list-none p-0 max-h-[60vh] overflow-y-auto; /* Scrollable list */
+}
+
+li {
+  @apply flex items-center justify-between p-3 m-2 bg-gray-700 rounded transition-colors /*animate-fadeIn; /* Mobile-friendly */
+}
+
+li:hover {
+  @apply bg-gray-600; /* Hover effect */
+}
+
+li input[type="checkbox"] {
+  @apply mr-2 h-5 w-5; /* Bigger checkbox */
+}
+
+li span {
+  @apply flex-1; /* Grow to fill space */
+}
+
+p {
+  @apply text-[#ff5555] m-2; /* Error/message */
+}
+
+.loading {
+  @apply opacity-0; /* animate-fadeInOut; /* Your animation */
+}
+
+/* Light theme */
+@media (prefers-color-scheme: light) {
+  .App {
+    @apply bg-gray-100;
+  }
+  button {
+    @apply bg-gray-200 text-gray-800;
+  }
+  button:hover {
+    @apply bg-gray-300;
+  }
+  li {
+    @apply bg-white;
+  }
+  li:hover {
+    @apply bg-gray-50;
+  }
+}
+
+/* Tablet and up */
+@media (min-width: 768px) {
+  .App {
+    @apply max-w-2xl p-6; /* Wider container */
+  }
+  h1 {
+    @apply text-3xl; /* Bigger title */
+  }
+  input {
+    @apply mx-2; /* Restore your original spacing */
+  }
+  button {
+    @apply w-auto px-4 py-2; /* Compact buttons */
+  }
+  li {
+    @apply m-3; /* More spacing */
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  h1 {
+    @apply text-4xl; /* Your original 2.5em-ish */
+  }
+}
+
+/* Animation */
+/* @keyframes fadeInOut {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+} */
+
+/* @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+} */
