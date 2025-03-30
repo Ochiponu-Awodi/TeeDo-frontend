@@ -54,14 +54,7 @@ function App() {
   }, [api, token]);
 
   // Initial fetch on login
-  useEffect(() => {
-    if (token) {
-      fetchTodos();
-    } else {
-      setTodos([]);
-      localStorage.removeItem('todos');
-    }
-  }, [token, fetchTodos]);
+  useEffect(() => { if (token) fetchTodos(); else { setTodos([]); localStorage.removeItem('todos'); } }, [token, fetchTodos]);
 
   // WebSocket for real-time updates
   useEffect(() => {
@@ -118,6 +111,7 @@ function App() {
   };
 
   const login = async () => {
+    setIsLoading(true);
     setMessage('');
     try {
       const response = await axios.post(`${baseURL}/login`, { username, password });
@@ -130,6 +124,8 @@ function App() {
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Login failed';
       setMessage(errorMsg === 'Invalid username or password' ? 'Wrong credentials' : errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -226,13 +222,19 @@ function App() {
   return (
     <div className="App">
       {!token ? (
-        <div>
+        <div className='relative'>
           <h1 className='text-2xl md:text-3xl lg:text-4xl'>TeeDo</h1>
           <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
 
           <button onClick={register}>Register</button>
           <button onClick={login}>Login</button>
+
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="loader"></div>
+            </div>
+          )}
           {message && <p>{message}</p>}
         </div>
       ) : (
@@ -252,7 +254,11 @@ function App() {
               </li>
             ))}
           </ul>
-          {isLoading && <p className='loading'>Loading...</p>}
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+              <div className="loader"></div>
+            </div>
+          )}
           {message && <p>{message}</p>}
         </div>
       )}

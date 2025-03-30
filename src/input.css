@@ -73,9 +73,14 @@ p {
   @apply text-[#ff5555] m-2;
 }
 
-.loading {
-  @apply opacity-0 /*animate-fadeInOut*/;
-  animation: fadeInOut 1s ease-in-out;
+.loader {
+  @apply w-12 h-12 border-4 border-t-transparent border-white rounded-full animate-spin;
+}
+.dark .loader {
+  @apply border-white border-t-transparent;
+}
+:root:not(.dark) .loader {
+  @apply border-gray-800 border-t-transparent;
 }
 
 /* Dark mode */
@@ -156,11 +161,15 @@ button.absolute.right-10 {
 }
 
 @keyframes fadeIn {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-  @keyframes fadeInOut {
-    0% { opacity: 0; }
-    50% { opacity: 1; }
-    100% { opacity: 0; }
-  }
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
