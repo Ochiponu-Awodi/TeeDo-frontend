@@ -231,7 +231,7 @@ function App() {
           <button onClick={login}>Login</button>
 
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="fixed inset-0 flex items-center justify-center loading-overlay">
               <div className="loader"></div>
             </div>
           )}
@@ -255,7 +255,7 @@ function App() {
             ))}
           </ul>
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="fixed inset-0 flex items-center justify-center loading-overlay">
               <div className="loader"></div>
             </div>
           )}
