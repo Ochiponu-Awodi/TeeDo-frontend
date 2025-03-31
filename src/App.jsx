@@ -222,13 +222,15 @@ function App() {
   return (
     <div className="App">
       {!token ? (
-        <div className='relative'>
+        <div className='relative flex flex-col items-center'>
           <h1 className='text-2xl md:text-3xl lg:text-4xl'>TeeDo</h1>
           <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
 
-          <button onClick={register}>Register</button>
-          <button onClick={login}>Login</button>
+          <div className="flex space-x-2">
+            <button onClick={register}>Register</button>
+            <button onClick={login}>Login</button>
+          </div>
 
           {isLoading && (
             <div className="fixed inset-0 flex items-center justify-center loading-overlay">
@@ -238,13 +240,19 @@ function App() {
           {message && <p>{message}</p>}
         </div>
       ) : (
-        <div className='relative'>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl">TeeDo List</h1>
-          <button className="absolute top-0 left-10" onClick={toggleTheme}> {isDarkMode ? <FaSun /> : <FaMoon />} </button>
-          <button className="absolute top-0 right-0" onClick={logout}>Logout</button>
-          <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Add a new task" />
+        <div className='relative flex flex-col items-center'>
+          <div className="w-full mb-6">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl">TeeDo List</h1>
+              <button className="theme-toggle mt-2" onClick={toggleTheme}>
+                {isDarkMode ? <FaSun /> : <FaMoon />}
+              </button>
+              <button className="absolute top-0 right-0" onClick={logout}>Logout</button>
+          </div>
 
-          <button onClick={addTodo}>Add Todo</button>
+          <div className="w-full flex items-center space-x-2">
+            <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Add a new task" />
+            <button onClick={addTodo}>Add Todo</button>
+          </div>
           <ul {...swipeHandlers}>
             {todos.map(todo => (
               <li key={todo.id} data-id={todo.id} className={swipingId === todo.id ? 'transform -translate-x-full transition-transform duration-300' : ''}>

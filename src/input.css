@@ -1,8 +1,7 @@
-/* src/input.css */
 @import "tailwindcss";
 
 body {
-  @apply min-w-[320px] min-h-screen;
+  @apply min-w-[320px] min-h-screen font-sans;
 }
 
 /* Dark mode */
@@ -16,28 +15,20 @@ body {
 }
 
 .App {
-  @apply max-w-full mx-auto p-4 text-center;
+  @apply max-w-full mx-auto p-6;
 }
 
 h1 {
-  @apply text-2xl mb-5;
+  @apply text-3xl font-bold mb-6 tracking-tight;
 }
 
 input {
-  @apply w-full p-2 m-2 rounded border border-gray-300 font-sans text-white;
+  @apply w-full p-3 m-2 rounded-lg border border-gray-300 text-white shadow-sm focus:ring-2 focus:ring-blue-400 transition-all;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 button {
-  @apply w-auto px-3 py-2 m-1 rounded border-none bg-gray-800 text-white font-medium cursor-pointer transition-colors;
-}
-
-button:hover {
-  @apply bg-gray-700 border border-[#646cff];
-}
-
-button:focus,
-button:focus-visible {
-  @apply outline-none ring-4 ring-blue-500;
+  @apply w-auto px-4 py-2 m-2 rounded-lg bg-gray-800 text-white font-medium shadow-md hover:shadow-lg hover:bg-gray-700 focus:ring-2 focus:ring-blue-400 transition-all;
 }
 
 ul {
@@ -45,7 +36,7 @@ ul {
 }
 
 li {
-  @apply flex items-center justify-between p-3 m-2 bg-gray-700 rounded transition-colors /*animate-fadeIn*/;
+  @apply flex items-center justify-between p-4 m-2 bg-gray-700 rounded-lg shadow-md hover:shadow-lg transition-all;
   animation: fadeIn 0.5s ease-in;
 }
 
@@ -54,23 +45,19 @@ li:hover {
 }
 
 li input[type="checkbox"] {
-  @apply mr-2 h-5 w-5;
+  @apply mr-3 h-5 w-5 accent-blue-500;
 }
 
 li span {
-  @apply flex-1 text-white;
+  @apply flex-1 text-white text-lg;
 }
 
 li button {
-  @apply w-auto px-2 py-1 m-1 text-sm bg-red-600 rounded; /* Smaller delete */
-}
-
-li button:hover {
-  @apply bg-red-500;
+  @apply w-auto px-3 py-1 m-1 text-sm !text-white !bg-red-600 rounded-lg shadow-sm hover:!bg-red-500 transition-all;
 }
 
 p {
-  @apply text-[#ff5555] m-2;
+  @apply text-[#ff5555] m-2 font-medium;
 }
 
 .loader {
@@ -84,7 +71,8 @@ p {
 }
 
 .loading-overlay {
-  @apply fixed inset-0 backdrop-blur-sm bg-black;
+  @apply fixed inset-0 backdrop-blur-sm;
+  animation: fadeInOut 1s ease-in-out;
   background-color: rgba(107, 114, 128, 0.1);
 }
 
@@ -93,19 +81,14 @@ p {
   @apply bg-gray-900 text-white;
 }
 .dark button {
-  @apply bg-gray-800 text-white;
-}
-.dark button:hover {
-  @apply bg-gray-700;
+  @apply bg-gray-800 hover:bg-gray-700;
 }
 .dark li {
-  @apply bg-gray-700;
-}
-.dark li:hover {
-  @apply bg-gray-600;
+  @apply bg-gray-700 hover:bg-gray-600;
 }
 .dark input {
-  @apply text-white bg-gray-800;
+  @apply text-white bg-gray-800 border-gray-600;
+  background-color: rgba(31, 41, 55, 0.1);
 }
 
 /* Light mode */
@@ -113,56 +96,70 @@ p {
   @apply bg-gray-100;
 }
 :root:not(.dark) button {
-  @apply bg-gray-200 text-gray-800;
-}
-:root:not(.dark) button:hover {
-  @apply bg-gray-300;
+  @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
 }
 :root:not(.dark) li {
-  @apply bg-white;
-}
-:root:not(.dark) li:hover {
-  @apply bg-gray-50;
+  @apply bg-white hover:bg-gray-50;
 }
 :root:not(.dark) li span {
   @apply text-gray-800; /* Dark text for light mode */
 }
 :root:not(.dark) input {
-  @apply text-gray-800 bg-white; /* Dark text, light input bg */
+  @apply text-gray-800 bg-white border-gray-300; /* Dark text, light input bg */
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Tablet and up */
-@media (min-width: 768px) {
+/* Mobile adjustments */
+@media (max-width: 767px) {
   .App {
-    @apply max-w-2xl p-6;
+    @apply p-4;
   }
   h1 {
-    @apply text-3xl;
+    @apply text-2xl mb-4;
   }
   input {
-    @apply mx-2;
+    @apply p-2 m-1;
   }
   button {
-    @apply px-4 py-2;
+    @apply px-3 py-1 m-1;
   }
   li {
-    @apply m-3;
+    @apply p-3 m-1;
   }
   button.absolute {
     @apply px-2 py-1 text-sm;
   }
 }
 
+/* Tablet and up */
+@media (min-width: 768px) {
+  .App {
+    @apply max-w-2xl p-8;
+  }
+  h1 {
+    @apply text-4xl mb-8;
+  }
+  input {
+    @apply mx-2;
+  }
+  button {
+    @apply px-5 py-2;
+  }
+  li {
+    @apply m-3;
+  }
+}
+
 /* Desktop */
 @media (min-width: 1024px) {
   h1 {
-    @apply text-4xl;
+    @apply text-5xl;
   }
 }
 
 /* Theme toggle */
-button.absolute.right-10 {
-  @apply p-2 text-xl;
+.theme-toggle {
+  @apply p-2 text-xl rounded-full shadow-md hover:bg-gray-600 transition-all;
 }
 
 @keyframes fadeIn {
@@ -173,8 +170,4 @@ button.absolute.right-10 {
   0% { opacity: 0; }
   50% { opacity: 1; }
   100% { opacity: 0; }
-}
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
