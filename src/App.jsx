@@ -1,8 +1,8 @@
+import TodoList from './TodoList'
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import axios from 'axios'
 import { debounce } from 'lodash'
 import { io } from 'socket.io-client'
-import { useSwipeable } from 'react-swipeable';
 import { FaSun, FaMoon } from 'react-icons/fa';
 import './input.css'
 
@@ -205,20 +205,6 @@ function App() {
     }
   };
 
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: (eventData) => {
-      const id = Number(eventData.event.target.closest('li')?.dataset.id);
-      if (id) deleteTodo(id);
-    },
-    onSwipeStart: (eventData) => {
-      const id = Number(eventData.event.target.closest('li')?.dataset.id);
-      if (id) setSwipingId(id);
-    },
-    onSwiped: () => setSwipingId(null),
-    trackMouse: true,
-    delta: 50,
-  });
-
   return (
     <div className="App">
       {!token ? (
@@ -253,15 +239,13 @@ function App() {
             <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Add a new task" />
             <button onClick={addTodo}>Add Todo</button>
           </div>
-          <ul {...swipeHandlers}>
-            {todos.map(todo => (
-              <li key={todo.id} data-id={todo.id} className={swipingId === todo.id ? 'transform -translate-x-full transition-transform duration-300' : ''}>
-                <input type="checkbox" checked={todo.completed} onChange={() => toggleTodo(todo.id, todo.completed)}/>
-                <span className={todo.completed ? 'line-through' : ''}> {todo.task} </span>
-                <button onClick={() => deleteTodo(todo.id)}>Delete</button>
-              </li>
-            ))}
-          </ul>
+          <TodoList
+            todos={todos}
+            toggleTodo={toggleTodo}
+            deleteTodo={deleteTodo}
+            swipingId={swipingId}
+            setSwipingId={setSwipingId}
+          />
           {isLoading && (
             <div className="fixed inset-0 flex items-center justify-center loading-overlay">
               <div className="loader"></div>
