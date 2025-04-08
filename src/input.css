@@ -76,6 +76,22 @@ p {
   background-color: rgba(107, 114, 128, 0.1);
 }
 
+.todo-container {
+  @apply w-full max-w-3xl; /* Bigger but compact */
+}
+
+.swipe-wrapper {
+  @apply w-full;
+}
+
+.todo-container button {
+  @apply px-3 py-1 m-1 text-sm rounded-lg bg-gray-600 hover:bg-gray-500 shadow-sm transition-all;
+}
+
+.todo-container button.active {
+  @apply bg-blue-500 hover:bg-blue-400;
+}
+
 /* Dark mode */
 .dark .App {
   @apply bg-gray-900 text-white;

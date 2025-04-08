@@ -1,13 +1,13 @@
-import TodoList from './TodoList'
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import axios from 'axios'
-import { debounce } from 'lodash'
-import { io } from 'socket.io-client'
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import axios from 'axios';
+import { debounce } from 'lodash';
+import { io } from 'socket.io-client';
 import { FaSun, FaMoon } from 'react-icons/fa';
-import './input.css'
+import TodoList from './TodoList';
+import './input.css';
 
 function App() {
-  const [todos, setTodos] = useState(() => JSON.parse(localStorage.getItem('todos')) || []);
+  const [todos, setTodos] = useState([]);
   const [newTask, setNewTask] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -17,7 +17,6 @@ function App() {
   const [swipingId, setSwipingId] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') !== 'light');
 
-  // Dynamic baseurl for all requests
   const baseURL = import.meta.env.VITE_API_URL || 'https://teedo-backend.onrender.com';
 
   useEffect(() => {
@@ -27,7 +26,6 @@ function App() {
 
   const toggleTheme = () => setIsDarkMode(prev => !prev);
 
-  // Axios instance for authenticated requests
   const api = useMemo(() => axios.create({ baseURL, headers: token ? { Authorization: `Bearer ${token}` } : {} }), [token, baseURL]);
 
   const fetchTodos = useCallback(async () => {
@@ -44,7 +42,7 @@ function App() {
         setToken('');
         localStorage.removeItem('token');
         setTodos([]);
-        setMessage('Session expired. Please log in again.');
+        setMessage('Session expired, please log in again');
       } else {
         setMessage('Failed to fetch todos');
       }
@@ -53,49 +51,45 @@ function App() {
     }
   }, [api, token]);
 
-  // Initial fetch on login
-  useEffect(() => { if (token) fetchTodos(); else { setTodos([]); localStorage.removeItem('todos'); } }, [token, fetchTodos]);
-
-  // WebSocket for real-time updates
   useEffect(() => {
-    const socket = io(baseURL, { transports: ['websocket', 'polling'] });
+    if (token) fetchTodos();
+    else setTodos(JSON.parse(localStorage.getItem('todos')) || []);
+  }, [token, fetchTodos]);
+
+  useEffect(() => {
+    if (!token) return;
+    const socket = io(baseURL, { auth: { token }, transports: ['websocket', 'polling'] });
     socket.on('connect', () => console.log('WebSocket connected'));
     socket.on('new_todo', (todo) => {
-      if (token) { // Only update if logged in
-        setTodos((prevTodos) => {
-          if (prevTodos.some(t => t.id === todo.id)) return prevTodos;
-          const updatedTodos = [...prevTodos, todo];
-          localStorage.setItem('todos', JSON.stringify(updatedTodos));
-          setMessage('New todo added in real-time');
-          setTimeout(() => setMessage(''), 2000);
-          return updatedTodos;
-        });
-      }
+      setTodos(prev => {
+        if (prev.some(t => t.id === todo.id)) return prev;
+        const updated = [...prev, todo];
+        localStorage.setItem('todos', JSON.stringify(updated));
+        setMessage('New todo added in real-time');
+        setTimeout(() => setMessage(''), 2000);
+        return updated;
+      });
     });
     socket.on('updated_todo', (todo) => {
-      if (token) {
-        setTodos((prevTodos) => {
-          const updatedTodos = prevTodos.map(t => (t.id === todo.id ? todo : t));
-          localStorage.setItem('todos', JSON.stringify(updatedTodos));
-          setMessage('Todo updated in real-time');
-          setTimeout(() => setMessage(''), 2000);
-          return updatedTodos;
-        });
-      }
+      setTodos(prev => {
+        const updated = prev.map(t => (t.id === todo.id ? todo : t));
+        localStorage.setItem('todos', JSON.stringify(updated));
+        setMessage('Todo updated in real-time');
+        setTimeout(() => setMessage(''), 2000);
+        return updated;
+      });
     });
     socket.on('deleted_todo', ({ id }) => {
-      if (token) {
-        setTodos((prevTodos) => {
-          const updatedTodos = prevTodos.filter(t => t.id !== id);
-          localStorage.setItem('todos', JSON.stringify(updatedTodos));
-          setMessage('Todo deleted in real-time');
-          setTimeout(() => setMessage(''), 2000);
-          return updatedTodos;
-        });
-      }
+      setTodos(prev => {
+        const updated = prev.filter(t => t.id !== id);
+        localStorage.setItem('todos', JSON.stringify(updated));
+        setMessage('Todo deleted in real-time');
+        setTimeout(() => setMessage(''), 2000);
+        return updated;
+      });
     });
-    return () => socket.disconnect(); // Cleanup on unmount
-  }, [token, baseURL])
+    return () => socket.disconnect();
+  }, [token, baseURL]);
 
   const register = async () => {
     setMessage('');
@@ -138,19 +132,12 @@ function App() {
   };
 
   const addTodo = useCallback(() => {
+    if (!newTask.trim()) return;
     const debouncedAdd = debounce(async () => {
-      if (!newTask) return;
       setIsLoading(true);
       setMessage('');
       try {
-        const response = await api.post('/todos', { task: newTask});
-        setTodos((prevTodos) => {
-          // Only add if not already present
-          if (prevTodos.some(t => t.id === response.data.id)) return prevTodos;
-          const updatedTodos = [...prevTodos, response.data];
-          localStorage.setItem('todos', JSON.stringify(updatedTodos));
-          return updatedTodos;
-        });
+        await api.post('/todos', { task: newTask });
         setNewTask('');
         setMessage('Todo added successfully');
         setTimeout(() => setMessage(''), 2000);
@@ -165,59 +152,52 @@ function App() {
   }, [api, newTask]);
 
   const toggleTodo = async (id, completed) => {
-    setIsLoading(true);
-    setMessage('');
     try {
-      const response = await api.put(`/todos/${id}`, { completed: !completed });
-      setTodos((prevTodos) => {
-        const updatedTodos = prevTodos.map(todo => (todo.id === id ? response.data : todo));
-        localStorage.setItem('todos', JSON.stringify(updatedTodos));
-        return updatedTodos;
+      await api.put(`/todos/${id}`, { completed: !completed });
+      setTodos(prev => {
+        const updated = prev.map(t => (t.id === id ? { ...t, completed: !completed } : t));
+        localStorage.setItem('todos', JSON.stringify(updated));
+        return updated;
       });
-      setMessage('Todo updated successfully');
-      setTimeout(() => setMessage(''), 2000);
     } catch (error) {
-      console.error('Error updating todo:', error);
-      setMessage('Failed to update todo');
-    } finally {
-      setIsLoading(false);
+      console.error('Error toggling todo:', error);
+      setMessage('Failed to toggle todo');
+      fetchTodos();
     }
   };
 
   const deleteTodo = async (id) => {
-    setIsLoading(true);
-    setMessage('');
     try {
       await api.delete(`/todos/${id}`);
-      setTodos((prevTodos) => {
-        const updatedTodos = prevTodos.filter(todo => todo.id !== id);
-        localStorage.setItem('todos', JSON.stringify(updatedTodos));
-        return updatedTodos;
+      setTodos(prev => {
+        const updated = prev.filter(t => t.id !== id);
+        localStorage.setItem('todos', JSON.stringify(updated));
+        return updated;
       });
-      setMessage('Todo deleted successfully');
-      setTimeout(() => setMessage(''), 2000);
     } catch (error) {
       console.error('Error deleting todo:', error);
       setMessage('Failed to delete todo');
-    } finally {
-      setIsLoading(false);
-      setSwipingId(null);
+      fetchTodos();
     }
+  };
+
+  const updateOrder = (newTodos) => {
+    setTodos(newTodos);
+    localStorage.setItem('todos', JSON.stringify(newTodos));
+    // TODO: Sync order to backend
   };
 
   return (
     <div className="App">
       {!token ? (
-        <div className='relative flex flex-col items-center'>
-          <h1 className='text-2xl md:text-3xl lg:text-4xl'>TeeDo</h1>
+        <div className="relative flex flex-col items-center">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl">Todo App</h1>
           <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Username" />
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" />
-
           <div className="flex space-x-2">
             <button onClick={register}>Register</button>
             <button onClick={login}>Login</button>
           </div>
-
           {isLoading && (
             <div className="fixed inset-0 flex items-center justify-center loading-overlay">
               <div className="loader"></div>
@@ -226,18 +206,17 @@ function App() {
           {message && <p>{message}</p>}
         </div>
       ) : (
-        <div className='relative flex flex-col items-center'>
+        <div className="relative flex flex-col items-center">
           <div className="w-full mb-6">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl">TeeDo List</h1>
-              <button className="theme-toggle mt-2" onClick={toggleTheme}>
-                {isDarkMode ? <FaSun /> : <FaMoon />}
-              </button>
-              <button className="absolute top-0 right-0" onClick={logout}>Logout</button>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl">Todo List</h1>
+            <button className="theme-toggle mt-2" onClick={toggleTheme}>
+              {isDarkMode ? <FaSun /> : <FaMoon />}
+            </button>
+            <button className="absolute top-0 right-0" onClick={logout}>Logout</button>
           </div>
-
           <div className="w-full flex items-center space-x-2">
             <input type="text" value={newTask} onChange={(e) => setNewTask(e.target.value)} placeholder="Add a new task" />
-            <button onClick={addTodo}>Add Todo</button>
+            <button onClick={addTodo}>Add</button>
           </div>
           <TodoList
             todos={todos}
@@ -245,6 +224,7 @@ function App() {
             deleteTodo={deleteTodo}
             swipingId={swipingId}
             setSwipingId={setSwipingId}
+            updateOrder={updateOrder}
           />
           {isLoading && (
             <div className="fixed inset-0 flex items-center justify-center loading-overlay">
@@ -258,4 +238,4 @@ function App() {
   );
 }
 
-export default App
+export default App;
