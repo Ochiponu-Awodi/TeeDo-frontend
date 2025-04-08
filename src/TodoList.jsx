@@ -1,6 +1,6 @@
 import { useState, memo } from 'react';
 import { useSwipeable } from 'react-swipeable';
-import { DndContext } from '@dnd-kit/core';
+import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -32,7 +32,16 @@ function TodoItem({ todo, toggleTodo, deleteTodo, swipingId }) {
 }
 
 function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, updateOrder }) {
-  const [filter, setFilter] = useState('active'); // Default to active
+  const [filter, setFilter] = useState('active');
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 150, // Long press 150ms for mobile
+        tolerance: 5, // Small movement tolerance
+      },
+    })
+  );
 
   const swipeHandlers = useSwipeable({
     onSwipedLeft: (e) => {
@@ -40,7 +49,7 @@ function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, upda
       console.log('Swiped left:', { id, deltaX: e.deltaX }); // Debug
       if (id && Math.abs(e.deltaX) > 100) {
         deleteTodo(id);
-        setSwipingId(null); // Reset after delete
+        setSwipingId(null);
       }
     },
     onSwiping: (e) => {
@@ -62,13 +71,17 @@ function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, upda
     const { active, over } = event;
     console.log('Drag end:', { active: active?.id, over: over?.id }); // Debug
     if (!over || active.id === over.id) return;
-    const oldIndex = filteredTodos.findIndex(todo => String(todo.id) === active.id);
-    const newIndex = filteredTodos.findIndex(todo => String(todo.id) === over.id);
-    console.log('Indices:', { oldIndex, newIndex }); // Debug
-    if (oldIndex === -1 || newIndex === -1) return; // Safety
+    const oldIndex = todos.findIndex(todo => String(todo.id) === active.id); // Use full todos
+    const newIndex = todos.findIndex(todo => String(todo.id) === over.id);
+    console.log('Indices:', { oldIndex, newIndex, todosIds: todos.map(t => t.id) }); // Debug
+    if (oldIndex === -1 || newIndex === -1) {
+      console.error('Invalid indices:', { oldIndex, newIndex });
+      return;
+    }
     const newTodos = Array.from(todos);
     const [moved] = newTodos.splice(oldIndex, 1);
     newTodos.splice(newIndex, 0, moved);
+    console.log('New order:', newTodos.map(t => t.id)); // Debug
     updateOrder(newTodos);
   };
 
@@ -78,9 +91,9 @@ function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, upda
         <button onClick={() => setFilter('active')} className={filter === 'active' ? 'active' : ''}>Active</button>
         <button onClick={() => setFilter('completed')} className={filter === 'completed' ? 'active' : ''}>Completed</button>
       </div>
-      <DndContext onDragEnd={handleDragEnd}>
+      <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
         <div {...swipeHandlers} className="swipe-wrapper">
-          <SortableContext items={filteredTodos.map(todo => String(todo.id))}>
+          <SortableContext items={todos.map(todo => String(todo.id))}> {/* Use full todos */}
             <ul className="w-full">
               {filteredTodos.length ? (
                 filteredTodos.map(todo => (
@@ -93,7 +106,7 @@ function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, upda
                   />
                 ))
               ) : (
-                <p>No {filter} todos</p> // Better UX
+                <p>No {filter} todos</p>
               )}
             </ul>
           </SortableContext>
