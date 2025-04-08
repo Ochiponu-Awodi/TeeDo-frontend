@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { DndContext } from '@dnd-kit/core';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
@@ -15,22 +15,17 @@ function TodoItem({ todo, toggleTodo, deleteTodo, swipingId }) {
     <li
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       data-id={todo.id}
       className={swipingId === todo.id ? 'transform -translate-x-full transition-transform duration-300' : 'transition-all'}
     >
-      <div className="flex items-center">
-        <input
-          type="checkbox"
-          checked={todo.completed}
-          onChange={(e) => {
-            e.stopPropagation();
-            toggleTodo(todo.id, todo.completed);
-          }}
-        />
-        <span {...attributes} {...listeners} className={todo.completed ? 'line-through' : ''}>
-          {todo.task}
-        </span>
-      </div>
+      <input
+        type="checkbox"
+        checked={todo.completed}
+        onChange={() => toggleTodo(todo.id, todo.completed)}
+      />
+      <span className={todo.completed ? 'line-through' : ''}>{todo.task}</span>
       <button onClick={() => deleteTodo(todo.id)}>Delete</button>
     </li>
   );
@@ -42,12 +37,20 @@ function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, upda
   const swipeHandlers = useSwipeable({
     onSwipedLeft: (e) => {
       const id = e.event.target.closest('li')?.dataset.id;
-      if (id && Math.abs(e.deltaX) > 100) deleteTodo(id);
+      console.log('Swiped left:', { id, deltaX: e.deltaX }); // Debug
+      if (id && Math.abs(e.deltaX) > 100) {
+        deleteTodo(id);
+        setSwipingId(null); // Reset after delete
+      }
     },
     onSwiping: (e) => {
+      console.log('Swiping:', { id: e.event.target.closest('li')?.dataset.id, deltaX: e.deltaX }); // Debug
       if (e.dir === 'Left') setSwipingId(e.event.target.closest('li')?.dataset.id);
     },
-    onSwiped: () => setSwipingId(null),
+    onSwiped: () => {
+      console.log('Swipe ended'); // Debug
+      setSwipingId(null);
+    },
     delta: 50,
     trackMouse: true,
     preventDefaultTouchmoveEvent: true,
@@ -57,9 +60,12 @@ function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, upda
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
+    console.log('Drag end:', { active: active?.id, over: over?.id }); // Debug
     if (!over || active.id === over.id) return;
     const oldIndex = filteredTodos.findIndex(todo => String(todo.id) === active.id);
     const newIndex = filteredTodos.findIndex(todo => String(todo.id) === over.id);
+    console.log('Indices:', { oldIndex, newIndex }); // Debug
+    if (oldIndex === -1 || newIndex === -1) return; // Safety
     const newTodos = Array.from(todos);
     const [moved] = newTodos.splice(oldIndex, 1);
     newTodos.splice(newIndex, 0, moved);
@@ -69,16 +75,12 @@ function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, upda
   return (
     <div className="todo-container">
       <div className="flex justify-between mb-4">
-        <button onClick={() => setFilter('active')} className={filter === 'active' ? 'active' : ''}>
-          Active
-        </button>
-        <button onClick={() => setFilter('completed')} className={filter === 'completed' ? 'active' : ''}>
-          Completed
-        </button>
+        <button onClick={() => setFilter('active')} className={filter === 'active' ? 'active' : ''}>Active</button>
+        <button onClick={() => setFilter('completed')} className={filter === 'completed' ? 'active' : ''}>Completed</button>
       </div>
       <DndContext onDragEnd={handleDragEnd}>
         <div {...swipeHandlers} className="swipe-wrapper">
-          <SortableContext items={filteredTodos.map(todo => String(todo.id))} key={filter}>
+          <SortableContext items={filteredTodos.map(todo => String(todo.id))}>
             <ul className="w-full">
               {filteredTodos.length ? (
                 filteredTodos.map(todo => (
@@ -101,4 +103,4 @@ function TodoList({ todos, toggleTodo, deleteTodo, swipingId, setSwipingId, upda
   );
 }
 
-export default TodoList;
+export default memo(TodoList);
